@@ -1,0 +1,59 @@
+1. install pylibdmtx
+on raspbian: "sudo apt-get install libdmtx0b"
+then pip3 install pylibdmtx
+
+2. How to solve timeout not working on pylibdmtx
+Edit file: ~/.local/lib/python3.7/site-packages/pylibdmtx/wrapper.py
+
+The reason is a wrong c structure wrapper in class DmtxTime on Raspberry Pi arm platform.
+On Raspberry Pi time_t is an long int and therefore can be ctype c_ulong instead of c_ulonglong.
+Original code from wrapper.py:
+
+class DmtxTime(Structure):
+    _fields_ = [
+        ('sec', c_ulonglong),      # Actually a time_t
+        ('usec', c_ulong),
+    ]
+
+Working code on Raspberry Pi:
+
+class DmtxTime(Structure):
+    _fields_ = [
+        ('sec', c_ulong),      # Actually a time_t
+        ('usec', c_ulong),
+    ]
+
+2. install pyzbar
+brew install zbar 
+sudo apt install libzbar0
+pip install pyzbar
+
+2. If need openCV
+https://stackoverflow.com/questions/59989893/datamatrix-with-raspberry
+I suppose there's no pre-built library for Raspberry Pi. So you can build it by yourself. Here is the source code:
+Install OpenCV
+https://www.pyimagesearch.com/2019/09/16/install-opencv-4-on-raspberry-pi-4-and-raspbian-buster/
+
+
+3. change mouse cursor hide.
+https://www.raspberrypi.org/forums/viewtopic.php?t=234879
+
+One option would be to install unclutter.
+
+sudo apt update
+sudo apt install unclutter
+
+unclutter -idle 0
+
+The mouse pointer will appear when moved.
+
+The command can be put in autostart
+
+/etc/xdg/lxsession/LXDE-pi/autostart
+
+mouse double click speed:
+https://www.raspberrypi.org/forums/viewtopic.php?t=28823
+{
+  echo 'gtk-double-click-time=500'
+  echo 'gtk-double-click-distance=20'
+} > .gtkrc-2.0.mine
