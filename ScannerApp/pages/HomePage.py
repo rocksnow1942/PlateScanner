@@ -28,12 +28,12 @@ class HomePage(tk.Frame):
     
     def checkUpdate(self):
         'check update every 1 hour'
-        githubURL = 'https://raw.githubusercontent.com/rocksnow1942/covid_database/master/package.json'
+        githubURL = 'https://raw.githubusercontent.com/rocksnow1942/PlateScanner/master/ScannerApp/__version__.py'
         while True:
             try:                
                 res = requests.get(githubURL)
-                ver = json.loads(res.text)['version']                
-                if ver != self.master.__version__:                    
+                ver = res.text.strip().split('=')[1].strip('"\' ')                
+                if  self.master.__version__ != ver:
                     self.versionVar.set('Update found.')
                     self.updateGithub()
                     time.sleep(3)
