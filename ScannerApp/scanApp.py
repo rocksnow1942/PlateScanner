@@ -12,6 +12,7 @@ import json
 from .utils import AMS_Database,Firebase
 import sys
 from pathlib import Path
+from .__version__ import version
 
 class ScannerApp(tk.Tk,Logger):
     def __init__(self):
@@ -78,7 +79,7 @@ class ScannerApp(tk.Tk,Logger):
         # the credential  is a json string.
         key = self.config['firebaseConfig']['firebaseKey']
         token = self.config['firebaseConfig']['firebaseToken']        
-        res = json.loads(decode(key,token))
+        res = json.loads(decode(key,token))        
         res.update(url=self.config['firebaseConfig']['firebaseURL'])
         return res
     @property
@@ -127,9 +128,8 @@ class ScannerApp(tk.Tk,Logger):
 
     def loadConfig(self):
         "load configuration from .ini"
-        # load version from package.json
-        with open('../package.json','rt') as f:
-            self.__version__ = json.load(f).get('version')
+        # load version from package.json        
+        self.__version__ = version
         folder = Path(__file__).parent.parent
         config = configparser.ConfigParser()
         config.optionxform = str # to perserve cases in option names.
