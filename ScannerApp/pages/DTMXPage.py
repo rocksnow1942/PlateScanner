@@ -180,7 +180,7 @@ class DTMXPage(BaseViewPage):
                 position = self.camera.indexToGridName(i) # A1 or H12 position name
                 convertedTubeID  = convertTubeID(res)
                 self.displaymsg(
-                    f'{"."*(i%4)} Scanning {i+1:3} / {total:3} {"."*(i%4)}')
+                    f'{"."*(i%4)} Reading {i+1:3} / {total:3} {"."*(i%4)}')
                 self.result.append((position,convertedTubeID))
                 self.displayInfo(f"{position} : {convertedTubeID}")
             self.displayInfo("Validating...")
@@ -192,6 +192,7 @@ class DTMXPage(BaseViewPage):
             if self.master.devMode:
                 self._nextBtn['state'] = 'normal'
         Thread(target=read,).start()
+        self.displaymsg('Scanning...')
 
     def showPrompt(self):
         "display in msg box to prompt scan the failed sample."

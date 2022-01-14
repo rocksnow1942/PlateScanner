@@ -172,8 +172,17 @@ class Camera():
                 code = self.decodePanel(panels,attempt=attempt,idx=idx)                
                 oldCode = oldresultDict.get(label,'')
                 if oldCode and code and oldCode != code:
+                    print('new read:',oldCode+'->'+code)
+                    previousReads = oldCode.split('->')
+                    oldCode = '->'.join(previousReads[-2:])
                     yield oldCode+'->'+code
-                if oldCode:
+                    # Or, we can say if there is 2 continuous reads are the same code, we think it is correct?
+                    # if previousReads.count(code) > 1:
+                    #     yield code
+                    # else:
+                    #     oldCode = '->'.join(previousReads[-2:])
+                    #     yield oldCode+'->'+code
+                elif oldCode:
                     yield  oldCode
                 else:
                     yield  code
