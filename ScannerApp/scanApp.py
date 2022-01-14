@@ -30,7 +30,7 @@ class ScannerApp(tk.Tk,Logger):
         if self.devMode:
             self.geometry('800x480+100+30')#-30
         else:
-            self.geometry('800x480+0+-30')#-30
+            self.geometry('800x480+10+10')#-30
 
         self.camera = Camera(scanConfig=self.scanConfig,
                             cameraConfig=self.cameraConfig,

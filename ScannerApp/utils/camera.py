@@ -6,6 +6,16 @@ import re
 import win32com.client, os
 import pythoncom
 
+try:
+    from pylibdmtx.pylibdmtx import decode
+except ImportError:
+    decode = lambda *_,**__:0
+try:
+    from pyzbar.pyzbar import decode as zbarDecode
+except ImportError:
+    zbarDecode = lambda *_,**__:0
+
+
 
 def onThreadStart(threadIndex):
     pythoncom.CoInitialize()
@@ -39,16 +49,6 @@ def acquire_image_wia(saveas,dpi=300):
         os.remove(saveas)
     image.SaveFile(saveas)
     return saveas
-
-
-try:
-    from pylibdmtx.pylibdmtx import decode
-except ImportError:
-    decode = lambda *_,**__:0
-try:
-    from pyzbar.pyzbar import decode as zbarDecode
-except ImportError:
-    zbarDecode = lambda *_,**__:0
 
 
 class Camera():
