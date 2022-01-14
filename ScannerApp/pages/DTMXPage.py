@@ -182,26 +182,31 @@ class DTMXPage(BaseViewPage):
         self.result = []
 
         def read():
-            
-            plateId = getattr(self.master.currentRoutine,'plateId','')
-            total = self.camera._scanGrid[0] * self.camera._scanGrid[1]
-            # this is the total number of samples on plate, from A-H then 1-12.            
-            needToVerify = self.master.currentRoutine.totalSampleCount
-            for i, res in enumerate(self.camera.scanDTMX(olderror,oldresult,self.reScanAttempt,needToVerify,plateId)):
-                position = self.camera.indexToGridName(i) # A1 or H12 position name
-                convertedTubeID  = convertTubeID(res)
-                self.displaymsg(
-                    f'{"."*(i%4)} Reading {i+1:3} / {total:3} {"."*(i%4)}')
-                self.result.append((position,convertedTubeID))
-                self.displayInfo(f"{position} : {convertedTubeID}")
-            self.displayInfo("Validating...")
-            self.validateResult()            
-            self.drawOverlay()
-            self.showPrompt()
-            self._prevBtn['state'] = 'normal'
-            self.readBtn['state'] = 'normal'
-            if self.master.devMode:
-                self._nextBtn['state'] = 'normal'
+            try:
+                plateId = getattr(self.master.currentRoutine,'plateId','')
+                total = self.camera._scanGrid[0] * self.camera._scanGrid[1]
+                # this is the total number of samples on plate, from A-H then 1-12.            
+                needToVerify = self.master.currentRoutine.totalSampleCount
+
+                for i, res in enumerate(self.camera.scanDTMX(olderror,oldresult,self.reScanAttempt,needToVerify,plateId)):
+                    position = self.camera.indexToGridName(i) # A1 or H12 position name
+                    convertedTubeID  = convertTubeID(res)
+                    self.displaymsg(
+                        f'{"."*(i%4)} Reading {i+1:3} / {total:3} {"."*(i%4)}')
+                    self.result.append((position,convertedTubeID))
+                    self.displayInfo(f"{position} : {convertedTubeID}")
+                self.displayInfo("Validating...")
+                self.validateResult()            
+                self.drawOverlay()
+                self.showPrompt()
+                self._prevBtn['state'] = 'normal'
+                self.readBtn['state'] = 'normal'
+                if self.master.devMode:
+                    self._nextBtn['state'] = 'normal'
+            except Exception as e:
+                self.displaymsg("Scanner error",'red')
+                self.displayInfo(str(e))
+
         Thread(target=read,).start()
         self.displaymsg('Scanning...')
 
