@@ -36,3 +36,4 @@ pyzbar == 0.1.8
 # PiScanner/ScannerApp/utils/connection.py: 2
 # PiScanner/ScannerApp/utils/validators.py: 1
 requests == 2.23.0
+pywin32==228
