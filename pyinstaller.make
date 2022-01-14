@@ -1,0 +1,1 @@
+pyinstaller app.py --onefile --noconsole --clean --add-data ".\ScannerApp\utils\pylibdmtx\libdmtx-64.dll;."

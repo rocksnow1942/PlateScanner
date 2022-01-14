@@ -14,6 +14,7 @@ class CreateSample(Routine):
              'Review the results and click Save']
     btnName = 'Create'
     requireAuthorization = 'reception'
+    plateTime = None
     @property
     def totalSampleCount(self):
         "return totoal exptected sample count"        
@@ -23,10 +24,11 @@ class CreateSample(Routine):
     def plateId(self):
         "the plate ID is used for DTMX page to save snap shot."
         receptionCode = self.results[0]
-        return f'createSample-{receptionCode[0:5]}'
+        return f'createSample-{receptionCode[-6:]}-{self.plateTime}'
 
     def validateResult(self, result):
         if self.currentPage == 0:
+            self.plateTime = datetime.now().strftime('%Y-%m-%d_%H%M%S')
             if self.isDev:
                 return True, 'dev mode', True
             res = self.master.db.get('/batch', json={'_id': result})

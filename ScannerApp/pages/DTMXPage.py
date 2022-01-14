@@ -46,24 +46,30 @@ class DTMXPage(BaseViewPage):
         self._info = tk.Text(self,font=('Arial',16),padx=3,yscrollcommand=scbar.set)
         scbar.config(command=self._info.yview)
         self._info.configure(state='disabled')
-        self._info.place(x=340,y=80,width=340,height=180)
-        scbar.place(x = 680,y=80,width=20,height=180)
+        self._info.place(x=340,y=60,width=420,height=220)
+        scbar.place(x = 760,y=60,width=20,height=220)
 
         self.upBtn = tk.Button(self, text='↑',    font=('Arial', 20), command=self.moveSelection('up'))
         self.downBtn = tk.Button(self, text='↓',  font=('Arial', 20), command=self.moveSelection('down'))
         self.leftBtn = tk.Button(self, text='←',  font=('Arial', 20), command=self.moveSelection('left'))
         self.rightBtn = tk.Button(self, text='→', font=('Arial', 20), command=self.moveSelection('right'))
-        self.upBtn   .place(x=710,y= 80,width=70,height=40)
-        self.downBtn .place(x=710,y=130,width=70,height=40)
-        self.leftBtn .place(x=710,y=180,width=70,height=40)
-        self.rightBtn.place(x=710,y=230,width=70,height=40)
+        
+        X = 130
+        Y = 280
+        btnSize = 50
+
+        self.upBtn   .place(x=X,y=Y,width=btnSize,height=btnSize)
+        self.downBtn .place(x=X,y=Y + btnSize * 2,width=btnSize,height=btnSize)
+        self.leftBtn .place(x=X - btnSize,y=Y + btnSize,width=btnSize,height=btnSize)
+        self.rightBtn.place(x=X + btnSize,y=Y + btnSize,width=btnSize,height=btnSize)
+
         self.readBtn .place(x=495, y=300, height=90, width=130)
         self.create_grid()
 
     def create_grid(self):
         # grid labels for color plate
         # position: (x,y)
-        sx,sy = 20,80
+        sx,sy = 20,60
         s = 25        
         for c in range(12):        
             for r in range(8):
@@ -192,7 +198,7 @@ class DTMXPage(BaseViewPage):
         idx = self.currentSelection
         if (idx is None) or (idx >= len(self.result) or idx < 0):
             if self.specimenError:
-                self.displaymsg('Some samples might have error. Select to view details.','yellow')
+                self.displaymsg('Some samples might have error. Select to view details.','brown')
             elif self.result:
                 self.displaymsg('All specimen scanned. Click Next.', 'green')                
             else:

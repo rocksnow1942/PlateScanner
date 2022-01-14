@@ -5,10 +5,10 @@ from . import BaseViewPage
 class BarcodePage(BaseViewPage):
     resultType = lambda x:'Not Scanned'
     def __init__(self, parent, master):
-        self.useCamera = master.useCamera
+        
         self.validationStatus = []
         super().__init__(parent,master)        
-        self.offset = 0 if self.useCamera else -160
+        self.offset = -160
         self.camera = master.camera
         self.createDefaultWidgets()
         self.placeDefaultWidgets()
@@ -24,7 +24,7 @@ class BarcodePage(BaseViewPage):
         
         self._prevBtn.place(x=340 , y=300,  height=90 ,width=130,)
         self._nextBtn.place(x=650 , y=300, height=90, width=130)
-        self._title.place(x=340 if self.useCamera else 0,y=20,width=440 if self.useCamera else 800,height=30)
+        self._title.place(x= 0,y=20,width= 800,height=30)
 
     def create_widgets(self):
         self.scanVar = tk.StringVar()
@@ -40,18 +40,11 @@ class BarcodePage(BaseViewPage):
         self.setTitle(title,color)
         self.keySequence = []
         self.tkraise()
-        self.focus_set()
-        if self.useCamera:
-            self.camera.start()
-            self.barcodeThread = Thread(target=self.camera.liveScanBarcode,args=(self.keyboardCb,))
-            self.barcodeThread.start()
+        self.focus_set()     
         self.displaymsg(msg)
         self.showPrompt()
 
     def closePage(self):
-        if self.useCamera:
-            self.master.camera.stop()
-            self.barcodeThread.join()
         if not self.master.devMode:
             self.disableNextBtn()
         self.keySequence = []

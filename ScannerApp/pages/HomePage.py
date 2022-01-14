@@ -91,15 +91,15 @@ class HomePage(tk.Frame):
     
     def pollServer(self):
         while True:            
-            try:
-                t0=time.perf_counter()                
-                requests.get('https://www.google.com',timeout=1)
-                dt = time.perf_counter() - t0
-                internet = f"{int((dt) * 1000)}ms"
-                self.master.firebase.offline=False
-            except:                
-                internet = "Offline"
-                self.master.firebase.offline=True
+            # try:
+            #     t0=time.perf_counter()                
+            #     requests.get('https://www.google.com',timeout=1)
+            #     dt = time.perf_counter() - t0
+            #     internet = f"{int((dt) * 1000)}ms"
+            #     self.master.firebase.offline=False
+            # except:                
+            #     internet = "Offline"
+            #     self.master.firebase.offline=True
             try:                
                 t0=time.perf_counter()
                 requests.get(self.master.URL,timeout=1)
@@ -110,17 +110,18 @@ class HomePage(tk.Frame):
                 self.master.db.offline=True                
                 mongo='Offline'
 
-            fbL = self.master.firebase.requestHistoryLenth 
+            # fbL = self.master.firebase.requestHistoryLenth 
             dbL = self.master.db.requestHistoryLenth 
-            if fbL==0 and dbL==0:
+            if  dbL==0:
                 self.dbHistoryVar.set('All saved')
                 self.dbHistoryStatus.config(fg='green')
             else:
-                self.dbHistoryVar.set(f'G:{fbL} A:{dbL} To Save')
+                # self.dbHistoryVar.set(f'G:{fbL} A:{dbL} To Save')
+                self.dbHistoryVar.set(f'A:{dbL} To Save')
                 self.dbHistoryStatus.config(fg='red')
 
-            self.serverVar.set(f'G:{internet} A:{mongo}')
-            color = 'red' if internet=='Offline' or mongo=='Offline' else 'green'
+            self.serverVar.set(f'A:{mongo}')
+            color = 'red' if  mongo=='Offline' else 'green'
             self.serverStatus.config(fg=color)
             time.sleep(3)
 

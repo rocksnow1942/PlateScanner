@@ -48,7 +48,7 @@ def convertTubeID(code):
     "turn tube ID to upper case"
     return code and code.upper()
 
-def mkdir(path):
-    folder = Path(__file__).parent.parent / 'exports' / path
+def mkdir(path,parent='exports'):
+    folder = Path('./ScannerApp') / parent / path
     Path(folder).mkdir(parents=True, exist_ok=True)
     return Path(folder)

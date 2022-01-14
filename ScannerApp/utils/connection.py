@@ -4,7 +4,7 @@ import time
 from datetime import date, timedelta
 import json
 import os
-
+from pathlib import Path
 
 class NoDispatchMethod(Exception):
     pass
@@ -122,6 +122,8 @@ class HeaderManager:
             self.saveOfflineData()
 
     def saveOfflineData(self):
+        # make sure the directory exists.
+        Path(self.offlineDataFile).parent.mkdir(parents=True, exist_ok=True)        
         with open(self.offlineDataFile, 'wt') as f:
             json.dump(self.offlineData, f, indent=2)
 
@@ -172,7 +174,7 @@ class HeaderManager:
 
 
 class Firebase(HeaderManager):
-    def __init__(self, logger, username, password, url):
+    def __init__(self, logger, username=None, password=None, url=None):
         super().__init__(
             logger, url,
             offlineDataFile='./ScannerApp/logs/firebaseDataFile.json',
@@ -182,9 +184,8 @@ class Firebase(HeaderManager):
         self.pwd = password
         self.expire = 0
         self.token = ""
-        Thread(target=self.loadBooking, daemon=True).start()
-
-        Thread(target=self.saveOfflineRequests, daemon=True).start()
+        # Thread(target=self.loadBooking, daemon=True).start()
+        # Thread(target=self.saveOfflineRequests, daemon=True).start()
 
     def fetchToken(self):
         "fetch a auth token from firebase, and set expire time and token"

@@ -2,18 +2,13 @@ import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path  
 import os
-
-def createFolder(folder):
-    "create path if not exist"
-    _folder = Path(__file__).parent.parent/ folder
-    if not os.path.exists(_folder):
-        os.mkdir(_folder) 
-    return _folder
+from .util import mkdir
+ 
 
 def createFileHandler(logfileName):
     "create a file handler for logger"
-    folder = createFolder('logs')
-    fh = RotatingFileHandler( folder / logfileName, maxBytes=2**23, backupCount=10)
+    folder = mkdir('logs')
+    fh = RotatingFileHandler( folder/logfileName, maxBytes=2**23, backupCount=10)
     # fh.setLevel(level)
     fh.setFormatter(logging.Formatter(
         '%(asctime)s|%(name)-11s|%(levelname)-8s: %(message)s', datefmt='%m/%d %H:%M:%S'

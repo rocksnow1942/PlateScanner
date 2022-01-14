@@ -40,7 +40,7 @@ class ValidateSample(Routine):
         if res.status_code == 200:
             plateIds = {}
             for s in res.json():
-                plateIds[s['sampleId']] = s['sWell']
+                plateIds[s['sampleId']] = s.get('sWell','')
             for idx, (wn, id) in enumerate(result):
                 sWell = plateIds.get(id,  None)
                 if  sWell!=wn:

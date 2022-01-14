@@ -1,23 +1,14 @@
 import time
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 from datetime import datetime
 from ..utils import indexToGridName,mkdir
-import re
 import win32com.client, os
 import pythoncom
-
-try:
-    from pylibdmtx.pylibdmtx import decode
-except ImportError:
-    decode = lambda *_,**__:0
-try:
-    from pyzbar.pyzbar import decode as zbarDecode
-except ImportError:
-    zbarDecode = lambda *_,**__:0
+from .pylibdmtx.pylibdmtx import decode
 
 
 
-def onThreadStart(threadIndex):
+def onThreadStart():
     pythoncom.CoInitialize()
 
 WIA_COM = "WIA.CommonDialog"
@@ -52,36 +43,28 @@ def acquire_image_wia(saveas,dpi=300):
 
 
 class Camera():
-    def __init__(self,scanConfig,cameraConfig,dmtxConfig,master):
+    def __init__(self,scanConfig,dmtxConfig,master):
         super().__init__()
-        self.loadSettings(scanConfig,cameraConfig)
-        self.overlay = None
-        
-        self.startLiveBarcode = False
+        self.loadSettings(scanConfig)   
         self.dmtxConfig = dmtxConfig
         self.master = master
-        self.inZoomState = 0
-        self.zoomRegion = [
-            (0.0, 0.0, 1.0, 1.0),
-            (0.4, 0.4, 0.2, 0.2),
-            (0.1, 0.1, 0.2, 0.2),
-            (0.1, 0.7, 0.2, 0.2),
-            (0.7, 0.1, 0.2, 0.2),
-            (0.7, 0.7, 0.2, 0.2),
-        ]
+        print('DTMX config',dmtxConfig)
+        print('Scan config',scanConfig)
+
+        
 
     def toggleZoom(self):
         "toggle camera zoom state"
-        print('tooogle zoom')
+        pass
         
         
         
     def start(self,):
-        print('camera start')
+        pass
         
 
     def stop(self):
-        print('camera stop')
+        pass
         
 
     def adjustScanWindow(self,dx1=0,dy1=0,dx2=0,dy2=0):
@@ -95,49 +78,17 @@ class Camera():
     def valueInRange(self, value, minValue=0, maxValue=100):
         return min(max(value, minValue), maxValue)
 
-    def loadSettings(self,config,cameraConfig):
-        "load settings from config.ini"
-        scanWindow = config['scanWindow']
-        scanGrid = config['scanGrid']
-        direction = config['direction']
-        resW = config['scanResolution'] # picture resultion, width. always maintain 4:3
-        previewW = 300  # preview width
-        self.resolution = (resW, resW*3//4)
-        self.framerate = 24
-        # preview window is rotated 90 deg and mirrorred.
-        self._previewWindow = (20, 20, previewW, previewW*4//3)
-        self._scanGrid = scanGrid
-        self.direction = direction  # tube scan from top or bottom.                
-        self._scanWindow = scanWindow
-        
-
-    def manualRun(self):
-        ""
-        while True:
-            time.sleep(1)
-            action = input("action:\n").strip()
-            if action == 's':
-                self.snapshot()
-            elif action.isnumeric():
-                self.drawOverlay(highlights=[int(action)])
-            else:
-                result = self.scan()
-                highlights = []
-                for idx, res in enumerate(result):
-                    if len(res) != 10 or (not res.isnumeric()):
-                        highlights.append(idx)
-                self.drawOverlay(highlights)
+    def loadSettings(self,config):
+        "load settings from config.ini"           
+        self._scanGrid = config['scanGrid']        
+        self._scanWindow = config['scanWindow']
+        self.dpi = config['dpi'] or 400
+         
 
     def iterWells(self):
-        column, row = self._scanGrid
-        if self.direction == 'top':
-            row = list(range(row))
-        elif self.direction == 'bottom':
-            row = list(range(row)) # [::-1]
-        else:
-            raise ValueError("direction must be top or bottom")
+        column, row = self._scanGrid    
         for c in range(column):
-            for r in row:
+            for r in range(row):
                 yield (c, r)
 
 
@@ -171,11 +122,11 @@ class Camera():
         # shape is the size of datamatrix, 10X10 is 0,   12X12 is 1. 14X14 is 2.
         # deviation is how skewed the datamatrix can be.
         # threshold, value 0-100 to threshold image. 
-        # gap_size: pixels between two matrix.
-        timeout = 300+attempt*1000                
-        # return self.devDecode(idx)        
+        # gap_size: pixels between two matrix.        
+        # return self.devDecode(idx)
+
         for panel in panels:
-            res = decode(panel, max_count=1)
+            res = decode(panel,**self.dmtxConfig)
             if res:
                 try:
                     code = res[0].data.decode()
@@ -187,15 +138,14 @@ class Camera():
         
     def snapshot(self,):
         "capture and save a image"
-        file = mkdir('snapshot') / f'./{datetime.now().strftime("%H:%M:%S")}.jpeg'
-        self.capture(file, format='jpeg')
+        pass
 
     def runScan(self,name=None):
         """
         bracket the exposure to find the best exposure
         """
-        file = mkdir('dtmxScan') / f'./{name or "noname"}_{datetime.now().strftime("%Y%m%d%H%M%S")}.png'        
-        acquire_image_wia(str(file),dpi=400)        
+        file = mkdir('dtmxScan') / f'./{name or "noname"}.png'
+        acquire_image_wia(str(file),dpi=self.dpi)
         img = Image.open(file)        
         return img
 
@@ -209,29 +159,24 @@ class Camera():
         oldresult is al list of [(A1,Id)...] that contain both valid and invalid results.
         attempt is how many times have been reading the result.
         perform 2 sequential image capture
-        """
-        images = [self.runScan(plateId)]
-        ol = len(oldresult)
-        needToRead = [i[0] for i in olderror if i[1] == 'red']
+        """        
+        images = [self.runScan(plateId)]        
+        oldresultDict = {i[0]:i[1] for i in oldresult}
         for idx,panels in enumerate(zip( * [self.yieldPanel(i) for i in images] )):
             label = self.indexToGridName(idx)
             if not self.withinCount(label,needToVerify):              
                 # have to return "" for control wells, so that the ID is empty
                 # I was using the empty ID as indicator of control wells when parsing results.
-                yield ""                            
-            elif ol>idx:
-                if idx in needToRead: 
-                    # p1 = self.decodePanel(panel1,attempt)
-                    # p2 = self.decodePanel(panel2,attempt)
-                    # if p1==p2:
-                    #     yield p1
-                    # else:
-                    #     yield ""
-                    yield self.decodePanel(panels,attempt,idx)
-                else: 
-                    yield oldresult[idx][1] 
+                yield  ""
             else:
-                yield self.decodePanel(panels,attempt,idx)
+                code = self.decodePanel(panels,attempt=attempt,idx=idx)                
+                oldCode = oldresultDict.get(label,'')
+                if oldCode and code and oldCode != code:
+                    yield oldCode+'->'+code
+                if oldCode:
+                    yield  oldCode
+                else:
+                    yield  code
 
     def withinCount(self,label,count,grid=(12,8)):
         "check if a label is within a count from top to bottom, left to right"
@@ -240,52 +185,10 @@ class Camera():
         c = (col-1) * grid[1] + 'ABCDEFGHIJKLMNOPQRST'.index(row)
         return c<count
     
-    def translatePoint(self,x,y):
-        "map a point xy to preview window corrdinate"
-        xo, yo, pw, ph = self._previewWindow
-        resolutionX, resolutionY = self.resolution
-        pY = int(x * ph / resolutionX) + yo
-        pX = int(y * pw / resolutionY) + xo
-        return pX,pY
     
-    def liveScanBarcode(self,cb=print):
-        "use pyzbar to scan"
-        self.lastRead = None
-        while True:
-            time.sleep(0.05)
-            self._captureStream.seek(0)
-            if not self.startLiveBarcode:
-                break
-            self.capture(self._captureStream,format='jpeg',) #resize=(c_w,c_h)
-            self._captureStream.seek(0)
-            img = Image.open(self._captureStream)
-            code = zbarDecode(img)
-            if code and self.startLiveBarcode:    
-                res = code[0].data.decode()
-                if res != self.lastRead:
-                    cb(res)
-                self.lastRead = res                
-                pad = Image.new('RGBA',(800,480))
-                padDraw = ImageDraw.Draw(pad)
-                xy = [self.translatePoint(i.x, i.y) for i in code[0].polygon]
-                padDraw.polygon(xy, fill=(0, 0, 0, 0),
-                                outline=(0, 255, 0, 205))
-                for de in code[1:]:
-                    xy = [self.translatePoint(i.x, i.y) for i in de.polygon]
-                    padDraw.polygon(xy, fill=(0, 0, 0, 0),
-                                    outline=(255, 0, 0, 205))
-
-                if self.overlay:
-                    self.remove_overlay(self.overlay)
-                    self.overlay = None
-                self.overlay = self.add_overlay(pad.tobytes(),size=pad.size, layer=3)
-            else:
-                if self.overlay:
-                    self.remove_overlay(self.overlay)
-                    self.overlay = None
                 
     def indexToGridName(self, idx):
-        return indexToGridName(idx, grid=self._scanGrid, direction=self.direction)
+        return indexToGridName(idx, grid=self._scanGrid)
 
     def gridToIndex(self,r,c):
         """
@@ -294,13 +197,8 @@ class Camera():
         And based on whether the direction is top or bottom for the camera, (the physical setup right now only alllows bottom.)
         The grid (row, column) order will be either (0,1),(1,1),(2,1)... or (7,1),(6,1),(5,1)... (assuming 8 row plate)
         So this function convert the (row,column) order to the index in the iterWells, depending on the direction.
-        """
-        column, row = self._scanGrid
-        if self.direction == 'top':
-            idx = c * row + r
-        else:
-            idx = c * row + (row - r - 1)
-        return idx
+        """        
+        return c * self._scanGrid[1] + r
 
 
 

@@ -7,9 +7,10 @@ from .utils.logger import createFileHandler,Logger
 from .utils.validators import BarcodeValidator
 import json
 from os import path
-from .utils import decode
+from .utils import decode,mkdir
 import json
-from .utils import AMS_Database,Firebase
+from .utils import AMS_Database
+from .utils.config import defaultConfig
 import sys
 from pathlib import Path
 from .__version__ import version
@@ -30,16 +31,15 @@ class ScannerApp(tk.Tk,Logger):
         if self.devMode:
             self.geometry('800x480+100+30')#-30
         else:
-            self.geometry('800x480+10+10')#-30
+            self.geometry('800x480+100+100')#-30
 
-        self.camera = Camera(scanConfig=self.scanConfig,
-                            cameraConfig=self.cameraConfig,
+        self.camera = Camera(scanConfig=self.scanConfig,                        
                             dmtxConfig=self.dataMatrixConfig,
                             master = self)
         
         # initialize database
         self.db = AMS_Database(self,self.URL)        
-        self.firebase = Firebase(logger=self,**self.FirebaseConfig)
+        # self.firebase = Firebase(logger=self)
 
         container = tk.Frame(self)    
         container.pack(side='top',fill='both',expand=True)
@@ -79,9 +79,7 @@ class ScannerApp(tk.Tk,Logger):
         res = json.loads(decode(key,token))        
         res.update(url=self.config['firebaseConfig']['firebaseURL'])
         return res
-    @property
-    def cameraConfig(self):
-        return self.config['cameraConfig']
+    
     @property
     def scanConfig(self):
         return self.config['scanConfig']
@@ -95,9 +93,6 @@ class ScannerApp(tk.Tk,Logger):
     @property
     def enabledRoutine(self):
         return self.config['appConfig']['routines']
-    @property
-    def useCamera(self):
-        return self.config['BarcodePage']['useCamera']  
     @property
     def codeValidationRules(self):
         return self.config['codeValidation']
@@ -125,20 +120,20 @@ class ScannerApp(tk.Tk,Logger):
         # load version from package.json        
         self.__version__ = version
         folder = Path(__file__).parent.parent
+        folder = mkdir('userConfig')
         config = configparser.ConfigParser()
         config.optionxform = str # to perserve cases in option names.
-        inis = [folder / 'defaultConfig.ini',]
-        if path.exists(folder / 'config.ini'):
-            inis.append(folder / 'config.ini')
-        if path.exists(folder / 'cameraConfig.ini'):
-            inis.append(folder / 'cameraConfig.ini')
-        config.read(inis)
-        configdict = {}
+                        
+        config.read(folder / 'config.ini')
+
+        configdict = defaultConfig
         for section in config.sections():
             configdict[section]={}
             for key in config[section].keys():
                 configdict[section][key] = eval(config[section][key])
+
         self.config = configdict
+        
 
     def showHomePage(self):
         self.currentRoutine = None

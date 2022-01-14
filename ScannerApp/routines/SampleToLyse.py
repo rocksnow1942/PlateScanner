@@ -30,7 +30,7 @@ class SampleToLyse(Routine,GetColorMixin):
     @property
     def plateId(self):
         "the plate ID is used for DTMX page to save snap shot."        
-        return f'SampleLyse_{self.results[0]}'
+        return f'SampleToLyse_{self.results[0]}'
     
     @property
     def totalSampleCount(self):
@@ -177,7 +177,7 @@ class SampleToLyse(Routine,GetColorMixin):
         else:
             yield f'Error saving samples error: {res.json()}'
             raise RuntimeError (f"Saving samples error: {res.status_code}, {res.json()}")
-        yield from self.goHomeDelay(5)
+        yield from self.goHomeDelay(3)
         
 
 

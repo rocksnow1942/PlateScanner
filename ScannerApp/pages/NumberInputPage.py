@@ -25,9 +25,9 @@ class NumberInputPage(BaseViewPage):
         self._title.place(x=0, y=20, width=800, height=30)
 
         self.rowVar = tk.StringVar()
-        self.rowVar.set('D')
+        self.rowVar.set('H')
         self.colVar = tk.IntVar()
-        self.colVar.set(4)
+        self.colVar.set(11)
 
         tk.Label(self, textvariable=self.colVar, font=(
             'Arial', 65)).place(x=400, y=130, width=100)
