@@ -1,30 +1,45 @@
-from io import BytesIO
 import time
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 from ..utils import indexToGridName,mkdir
 import re
+import win32com.client, os
+import pythoncom
 
 
-class Mock:
-    _scanGrid = [12,8]
-    direction = 'bottom'
-    def __init__(self,*args,**kwargs) -> None:
-        pass
-    def __getattr__(self, name: str):
-        return lambda *_,**__:0
+def onThreadStart(threadIndex):
+    pythoncom.CoInitialize()
+
+WIA_COM = "WIA.CommonDialog"
+WIA_IMG_FORMAT_PNG = "{B96B3CAF-0728-11D3-9D7B-0000F81EF32E}"
+
+WIA_COMMAND_TAKE_PICTURE="{AF933CAC-ACAD-11D2-A093-00C04F72DC3C}"
+
+def acquire_image_wia(saveas,dpi=300):
+    pythoncom.CoInitialize()
+    wia = win32com.client.Dispatch(WIA_COM) # wia is a CommonDialog object
+    dev = wia.ShowSelectDevice()
+    for command in dev.Commands:
+        if command.CommandID==WIA_COMMAND_TAKE_PICTURE:
+            foo=dev.ExecuteCommand(WIA_COMMAND_TAKE_PICTURE)
+
+    items = list(dev.Items)
+    if len(items) == 0:
+        raise RuntimeError('No scanner connected.')
     
-    def scanDTMX(self,*args,**kwargs):
-        for i in range(12):
-            yield f'SK0000{i}'
-    def indexToGridName(self, idx):
-        return indexToGridName(idx, grid=self._scanGrid, direction=self.direction)
-    
+    item = items[-1]
+    for p in item.Properties:
+        if not p.IsReadOnly:
+            if  'Resolution' in p.Name:
+                p.Value = dpi
+                
+    image=item.Transfer(WIA_IMG_FORMAT_PNG)
+        
+    if os.path.exists(saveas):
+        os.remove(saveas)
+    image.SaveFile(saveas)
+    return saveas
 
-try:
-    from picamera import PiCamera
-except ImportError:
-    PiCamera = Mock
 
 try:
     from pylibdmtx.pylibdmtx import decode
@@ -36,12 +51,12 @@ except ImportError:
     zbarDecode = lambda *_,**__:0
 
 
-class Camera(PiCamera):
+class Camera():
     def __init__(self,scanConfig,cameraConfig,dmtxConfig,master):
         super().__init__()
         self.loadSettings(scanConfig,cameraConfig)
         self.overlay = None
-        self._captureStream = BytesIO()
+        
         self.startLiveBarcode = False
         self.dmtxConfig = dmtxConfig
         self.master = master
@@ -57,27 +72,17 @@ class Camera(PiCamera):
 
     def toggleZoom(self):
         "toggle camera zoom state"
-        self.inZoomState = (self.inZoomState + 1) % len(self.zoomRegion)
-        if self.inZoomState:
-            if  self.overlay:
-                self.remove_overlay(self.overlay)
-                self.overlay = None
-        else:
-            self.drawOverlay()
-        self.zoom = self.zoomRegion[self.inZoomState]
+        print('tooogle zoom')
+        
         
         
     def start(self,):
-        self.startLiveBarcode = True
-        self.start_preview(
-            fullscreen=False, window=self._previewWindow, hflip=True, rotation=90)
+        print('camera start')
+        
 
     def stop(self):
-        self.startLiveBarcode = False
-        if self.overlay:
-            self.remove_overlay(self.overlay)
-            self.overlay = None
-        self.stop_preview()
+        print('camera stop')
+        
 
     def adjustScanWindow(self,dx1=0,dy1=0,dx2=0,dy2=0):
         "change the scan window"
@@ -102,32 +107,12 @@ class Camera(PiCamera):
         # preview window is rotated 90 deg and mirrorred.
         self._previewWindow = (20, 20, previewW, previewW*4//3)
         self._scanGrid = scanGrid
-        self.direction = direction  # tube scan from top or bottom.
-        self.bracketExposureDelta = config['bracketExposure']
+        self.direction = direction  # tube scan from top or bottom.                
+        self._scanWindow = scanWindow
+        
+        
 
-        if scanWindow:
-            self._scanWindow = scanWindow
-        else:
-            scanRatio = 0.8
-            scanX = (resW * (1-scanRatio) )// 2
-            gridSize =( resW * scanRatio) // (self._scanGrid[0]-1)
-            scanY = (resW*3/4 - gridSize*(self._scanGrid[1]-1))//2
-
-            self._scanWindow = (scanX, scanY,
-                                scanX + gridSize*(self._scanGrid[0]-1),
-                                scanY + gridSize*(self._scanGrid[1]-1))
-        self.font = ImageFont.truetype("./ScannerApp/utils/arial.ttf", 26)
-
-        for key,value in cameraConfig.items():
-            if key == 'brightness':
-                value = self.valueInRange(value,0,100)
-            setattr(self,key,value)
-        # self.brightness = config['brightness']
-        # self.contrast = config['contrast']
-        # self.sharpness = config['sharpness']
-        # self.iso = config['iso']
-        # self.shutter_speed = config['shutter_speed']
-    
+       
     def getColor(self,color):
         return {
             'red':(255, 0, 0, 180),
@@ -147,65 +132,10 @@ class Camera(PiCamera):
         """
         highlights is a list of [(idx, color),...]
         """
-        pad = Image.new('RGBA', (800, 480))
-        padDraw = ImageDraw.Draw(pad)
-        column, row = self._scanGrid
-        xo, yo, pw, ph = self._previewWindow
-        s1, s2, s3, s4 = self._scanWindow        
-        resolutionX, resolutionY = self.resolution
-        # because preview is flipped and rotated,
-        # the x overlay offset caused by scan window is actually y offset of scan window
-        # in preview window, overlay offset caused by scan window in y direction.
-        scan_offset_y = (s1 * ph / resolutionX)
-        # in preview window, overlay offset caused by scan window in x direction.
-        scan_offset_x = (s2 * pw / resolutionY)
+        print('draw overylan',highlights)
+        return
 
-        # overlay grid height in preview window, this is actually scan window width.
-        gridHeight = ((s3-s1) * ph / resolutionX / (column - 1))
-        # overlay grid height in preview window, this is actually scan window height.
-        gridWidth = ((s4-s2) * pw / resolutionY / (row - 1))
-        gridW_ = gridWidth*0.9//2  # half width of actually drawing box in preview window
-        gridH_ = gridHeight*0.9//2  # half width of actually drawing box in preview window
-        highlightsDict = dict((idx, color) for idx, color,*_ in highlights)
         
-        
-        for (c,r) in self.iterWells():            
-            idx = self.gridToIndex(r,c)
-            fill=(0, 0, 0, 0)
-            if idx in highlightsDict:
-                outline =  self.getColor(highlightsDict[idx]) #(255, 0, 0, 180)
-                width = 3
-            else:
-                outline = (0, 255, 0, 180)
-                width = 1
-            posy = c * gridHeight + yo + scan_offset_y
-            posx = r * gridWidth + xo + scan_offset_x
-            if idx == currentSelection:
-                fill = (*outline[0:3],180)
-                width = 5                
-            padDraw.rectangle([posx-gridW_, posy-gridH_, posx+gridW_, posy+gridH_],
-                                fill=fill, outline=outline, width=width)
-                        
-
-        # label A1 - H12
-        labelY = yo + scan_offset_y - gridH_
-        rowIndex = "ABCDEFGHIJKLMNOPQRST"[0:row]
-        rowIndex = rowIndex if self.direction == 'top' else rowIndex[::-1]
-        for r in range(row):
-            posx = r * gridWidth + xo + scan_offset_x
-            label = rowIndex[r]
-            padDraw.text((posx, labelY), label, anchor='md',
-                         font=self.font, fill=(255, 0, 0, 255))
-        labelX = xo + scan_offset_x - gridW_ - 5
-        for c in range(column):
-            posy = c * gridHeight + yo + scan_offset_y
-            padDraw.text(
-                (labelX, posy), f'{c+1}', anchor='rm', font=self.font, fill=(255, 0, 0, 255))
-
-        if self.overlay:
-            self.remove_overlay(self.overlay)
-            self.overlay = None
-        self.overlay = self.add_overlay(pad.tobytes(), size=pad.size, layer=3)
 
     def manualRun(self):
         ""
@@ -229,7 +159,7 @@ class Camera(PiCamera):
         if self.direction == 'top':
             row = list(range(row))
         elif self.direction == 'bottom':
-            row = list(range(row))[::-1]
+            row = list(range(row)) # [::-1]
         else:
             raise ValueError("direction must be top or bottom")
         for c in range(column):
@@ -249,39 +179,17 @@ class Camera(PiCamera):
         oversample = 1.2
         column, row = self._scanGrid
         s1, s2, s3, s4 = self._scanWindow
-        gridWidth = (s3-s1)/(column-1)
-        gridHeight = (s4-s2)/(row-1)
+        gridWidth = (s3-s1)/(row-1)
+        gridHeight = (s4-s2)/(column-1)
         cropW = gridWidth * oversample // 2
         cropH = gridHeight * oversample // 2        
-        for (c,r) in self.iterWells():
-            posx = c * gridWidth + s1
-            posy = r * gridHeight + s2
-            yield img.crop((int(posx-cropW), int(posy-cropH), int(posx+cropW), int(posy+cropH)))
+        for idx,(c,r) in enumerate(self.iterWells()):
+            posx = r * gridWidth + s1
+            posy = c * gridHeight + s2
+            panel = img.crop((int(posx-cropW), int(posy-cropH), int(posx+cropW), int(posy+cropH)))
+            panel.save( mkdir('panels')/ f'{self.indexToGridName(idx)}.png')
+            yield panel
 
-    def devDecode(self,idx):
-        """
-        return some development barcode.
-        """
-        samples = [
-        # the following samples are in AMS DB but havn't received
-        'SK00017114', 'SK00017109',
-        'SK12345678', 'SK12345679',
-        'SK20291092', 'SK82345678',
-
-        # the following samples have conflicts in our database
-        'SK00064737', 'SK00105747',
-        'SK00105808', 'SK00105819',
-        'SK00105827', 'SK00105839',
-
-        # the following samples don't exist
-        'SK99912344', 'SK99912345',
-        'SK99812344', 'SK99812345',        
-        ]
-        if idx < len(samples):
-            return samples[idx]
-        else:
-            return ''
-        
 
     def decodePanel(self, panels,attempt=0,idx = 0):
         # decode:
@@ -291,17 +199,14 @@ class Camera(PiCamera):
         # threshold, value 0-100 to threshold image. 
         # gap_size: pixels between two matrix.
         timeout = 300+attempt*1000                
-        # return self.devDecode(idx)
-        codes = []
+        # return self.devDecode(idx)        
         for panel in panels:
-            res = decode(panel,timeout=timeout, **self.dmtxConfig)
+            res = decode(panel, max_count=1)
             if res:
                 try:
                     code = res[0].data.decode()
                     if code and self.master.validate(code,'sample'):
-                        codes.append(code)
-                        if codes.count(code) > 1:
-                            return code
+                        return code    
                 except:
                     continue
         return ''
@@ -311,23 +216,16 @@ class Camera(PiCamera):
         file = mkdir('snapshot') / f'./{datetime.now().strftime("%H:%M:%S")}.jpeg'
         self.capture(file, format='jpeg')
 
-    def bracketExposure(self,brightness,name=None):
+    def runScan(self,name=None):
         """
         bracket the exposure to find the best exposure
         """
-        time.sleep(0.2)
-        old = self.brightness
-        self.brightness = self.valueInRange(old+brightness,0,100)
-        self._captureStream.seek(0)
-        self.capture(self._captureStream, format='jpeg')
-        self._captureStream.seek(0)
-        img = Image.open(self._captureStream)
-        if name:
-            file = mkdir('dtmxScan') / f'./{name}_{datetime.now().strftime("%Y%m%d%H%M%S")}.jpeg'
-            img.save(file)
-        self.brightness = old
+        file = mkdir('dtmxScan') / f'./{name or "noname"}_{datetime.now().strftime("%Y%m%d%H%M%S")}.png'        
+        acquire_image_wia(str(file),dpi=400)        
+        img = Image.open(file)        
         return img
 
+    
 
     def scanDTMX(self,olderror=[],oldresult=[],attempt=0,needToVerify=96,plateId=''):
         """
@@ -338,11 +236,7 @@ class Camera(PiCamera):
         attempt is how many times have been reading the result.
         perform 2 sequential image capture
         """
-        images = [
-        self.bracketExposure(0),
-        self.bracketExposure(self.bracketExposureDelta),        
-        self.bracketExposure(-self.bracketExposureDelta),
-        ]
+        images = [self.runScan(plateId)]
         ol = len(oldresult)
         needToRead = [i[0] for i in olderror if i[1] == 'red']
         for idx,panels in enumerate(zip( * [self.yieldPanel(i) for i in images] )):

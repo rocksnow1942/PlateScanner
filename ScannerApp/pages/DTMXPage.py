@@ -135,6 +135,7 @@ class DTMXPage(BaseViewPage):
         self.result = []
 
         def read():
+            
             plateId = getattr(self.master.currentRoutine,'plateId','')
             total = self.camera._scanGrid[0] * self.camera._scanGrid[1]
             # this is the total number of samples on plate, from A-H then 1-12.            

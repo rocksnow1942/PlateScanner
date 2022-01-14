@@ -1,6 +1,6 @@
 import tkinter as tk
 from .pages import AllPAGES
-from .utils.camera import Camera,Mock
+from .utils.camera import Camera
 from .routines import Routines
 import configparser
 from .utils.logger import createFileHandler,Logger
@@ -32,13 +32,10 @@ class ScannerApp(tk.Tk,Logger):
         else:
             self.geometry('800x480+0+-30')#-30
 
-        if self.hasCamera:
-            self.camera = Camera(scanConfig=self.scanConfig,
+        self.camera = Camera(scanConfig=self.scanConfig,
                             cameraConfig=self.cameraConfig,
                             dmtxConfig=self.dataMatrixConfig,
                             master = self)
-        else:
-            self.camera = Mock()
         
         # initialize database
         self.db = AMS_Database(self,self.URL)        
@@ -100,10 +97,7 @@ class ScannerApp(tk.Tk,Logger):
         return self.config['appConfig']['routines']
     @property
     def useCamera(self):
-        return self.config['BarcodePage']['useCamera']
-    @property
-    def hasCamera(self):
-        return self.config['debugConfig']['hasCamera']
+        return self.config['BarcodePage']['useCamera']  
     @property
     def codeValidationRules(self):
         return self.config['codeValidation']
