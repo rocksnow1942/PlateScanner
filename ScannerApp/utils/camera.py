@@ -110,32 +110,6 @@ class Camera():
         self.direction = direction  # tube scan from top or bottom.                
         self._scanWindow = scanWindow
         
-        
-
-       
-    def getColor(self,color):
-        return {
-            'red':(255, 0, 0, 180),
-            'green':(0, 255, 0, 180),
-            'blue':(0, 0, 255, 180),
-            'yellow':(255, 255, 0, 180),
-            'white':(255, 255, 255, 180),
-            'black':(0, 0, 0, 180),
-            'orange':(255, 165, 0, 180),
-            'purple':(255, 0, 255, 180),
-            'pink':(255, 192, 203, 180),
-            'cyan':(0, 255, 255, 180),
-            'brown':(165, 42, 42, 180),
-        }.get(color,(10, 10, 10, 180))
-
-    def drawOverlay(self, highlights=[],currentSelection=None):
-        """
-        highlights is a list of [(idx, color),...]
-        """
-        print('draw overylan',highlights)
-        return
-
-        
 
     def manualRun(self):
         ""

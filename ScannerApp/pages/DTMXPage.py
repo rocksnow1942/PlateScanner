@@ -1,3 +1,4 @@
+from cgitb import text
 import tkinter as tk
 from threading import Thread
 from . import BaseViewPage
@@ -9,6 +10,7 @@ class DTMXPage(BaseViewPage):
     resultType = dict
     def __init__(self, parent, master):
         super().__init__(parent,master)
+        self.wells = []
         self.specimenError = []
         self.bypassErrorCheck = False
         self.reScanAttempt = 0 #to keep track how many times have been rescaned.
@@ -56,6 +58,19 @@ class DTMXPage(BaseViewPage):
         self.leftBtn .place(x=710,y=180,width=70,height=40)
         self.rightBtn.place(x=710,y=230,width=70,height=40)
         self.readBtn .place(x=495, y=300, height=90, width=130)
+        self.create_grid()
+
+    def create_grid(self):
+        # grid labels for color plate
+        # position: (x,y)
+        sx,sy = 20,80
+        s = 25        
+        for c in range(12):        
+            for r in range(8):
+                txt = tk.StringVar('')                
+                lb = tk.Label(self, textvariable=txt, font=('Arial', 20),bg='white')
+                lb.place(x=sx + s * c , y= sy + s * r , width=s-3, height=s-3)
+                self.wells.append((lb,txt))
         
     def showPage(self,title="Default DataMatrix Page",msg="Place plate on reader and click read.",color='black'):
         self.setTitle(title,color)
@@ -63,7 +78,7 @@ class DTMXPage(BaseViewPage):
         self.tkraise()
         self.focus_set()
         self.camera.start()
-        self.camera.drawOverlay(self.specimenError,self.currentSelection)
+        self.drawOverlay(self.specimenError,self.currentSelection)
         self.displaymsg(msg)
         self.showPrompt()
 
@@ -73,6 +88,21 @@ class DTMXPage(BaseViewPage):
         self.keySequence = []
         if not self.master.devMode:
             self._nextBtn['state'] = 'disabled'
+
+    def drawOverlay(self,specimenError,currentSelection):        
+        speErr = {idx:color for idx,color,*_ in specimenError}
+        for idx in range(96):
+            if idx in speErr:
+                self.wells[idx][0].configure(bg=speErr[idx])
+            else:
+                self.wells[idx][0].configure(bg='white')
+            if idx == currentSelection:
+                self.wells[idx][1].set('X')
+            else:
+                self.wells[idx][1].set('')
+        
+                
+        
 
     def keyboardCb(self, code):
         ""
@@ -87,7 +117,7 @@ class DTMXPage(BaseViewPage):
             posi = self.camera.indexToGridName(idx)
             self.result[idx] = (posi,convertTubeID(code))
             self.validateResult()            
-            self.camera.drawOverlay(self.specimenError,self.currentSelection)
+            self.drawOverlay(self.specimenError,self.currentSelection)
             self.showPrompt()
 
         elif self.result:
@@ -149,7 +179,7 @@ class DTMXPage(BaseViewPage):
                 self.displayInfo(f"{position} : {convertedTubeID}")
             self.displayInfo("Validating...")
             self.validateResult()            
-            self.camera.drawOverlay(self.specimenError,self.currentSelection)
+            self.drawOverlay(self.specimenError,self.currentSelection)
             self.showPrompt()
             self._prevBtn['state'] = 'normal'
             self.readBtn['state'] = 'normal'
@@ -184,17 +214,17 @@ class DTMXPage(BaseViewPage):
             if self.currentSelection == None:
                 self.currentSelection = 0
             if direction == 'up':
-                self.currentSelection -= 8
-            elif direction == 'down':
-                self.currentSelection += 8
-            elif direction == 'left':
-                self.currentSelection += 1
-            elif direction == 'right':
                 self.currentSelection -= 1
+            elif direction == 'down':
+                self.currentSelection += 1
+            elif direction == 'left':
+                self.currentSelection -= 8
+            elif direction == 'right':
+                self.currentSelection += 8
             if self.currentSelection < 0:
                 self.currentSelection = 96 + self.currentSelection
             elif self.currentSelection > 95:
                 self.currentSelection = self.currentSelection - 96
-            self.camera.drawOverlay(self.specimenError,self.currentSelection)
+            self.drawOverlay(self.specimenError,self.currentSelection)
             self.showPrompt()
         return cb
