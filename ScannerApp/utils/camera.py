@@ -1,15 +1,21 @@
-import time
 from PIL import Image
-from datetime import datetime
 from ..utils import indexToGridName,mkdir
-import win32com.client, os
-import pythoncom
-from .pylibdmtx.pylibdmtx import decode
+
+try:
+    import win32com.client as w32client
+    import pythoncom
+except:
+    print('No win32com support')
+    w32client=None
+    pythoncom=None
+import os
+import platform
+if platform.system() == 'Windows':
+    from .pylibdmtx.pylibdmtx import decode
+else:
+    from pylibdmtx.pylibdmtx import decode
 
 
-
-def onThreadStart():
-    pythoncom.CoInitialize()
 
 WIA_COM = "WIA.CommonDialog"
 WIA_IMG_FORMAT_PNG = "{B96B3CAF-0728-11D3-9D7B-0000F81EF32E}"
@@ -17,8 +23,10 @@ WIA_IMG_FORMAT_PNG = "{B96B3CAF-0728-11D3-9D7B-0000F81EF32E}"
 WIA_COMMAND_TAKE_PICTURE="{AF933CAC-ACAD-11D2-A093-00C04F72DC3C}"
 
 def acquire_image_wia(saveas,dpi=300):
+    if pythoncom is None:
+        return './ScannerApp/utils/devsample.png'
     pythoncom.CoInitialize()
-    wia = win32com.client.Dispatch(WIA_COM) # wia is a CommonDialog object
+    wia = w32client.Dispatch(WIA_COM) # wia is a CommonDialog object
     dev = wia.ShowSelectDevice()
     for command in dev.Commands:
         if command.CommandID==WIA_COMMAND_TAKE_PICTURE:
@@ -145,8 +153,8 @@ class Camera():
         bracket the exposure to find the best exposure
         """
         file = mkdir('dtmxScan') / f'./{name or "noname"}.png'
-        acquire_image_wia(str(file),dpi=self.dpi)
-        img = Image.open(file)        
+        saved = acquire_image_wia(str(file),dpi=self.dpi)
+        img = Image.open(saved)
         return img
 
     

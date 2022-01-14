@@ -35,22 +35,13 @@ class HomePage(tk.Frame):
                 ver = res.text.strip().split('=')[1].strip('"\' ')                
                 if  self.master.__version__ != ver:
                     self.versionVar.set('Update found.')
-                    self.updateGithub()
-                    time.sleep(3)
-                    for i in range(31):
-                        self.versionVar.set(f'Restart in {30-i}s')
-                        time.sleep(1)
-                    os._exit(0)
                 else:                    
-                    self.versionVar.set(f'{self.master.__version__}')
+                    self.versionVar.set(f'Appp Ver. {self.master.__version__}')
             except Exception as e:                
-                self.versionVar.set('Error')
+                self.versionVar.set('Check Update Error')
             time.sleep(3600)
             
-    
-    def updateGithub(self,):
-        import subprocess
-        subprocess.run(['git','pull'])
+     
         
     def create_widgets(self):
         "4 buttons Maximum"
@@ -58,7 +49,7 @@ class HomePage(tk.Frame):
         self.versionVar = tk.StringVar()
         self.versionVar.set(self.master.__version__)
         # tk.Label(self,textvariable=self.versionVar,).place(x=780,y=10,anchor='ne')
-        tk.Button(self,textvariable=self.versionVar,command=self.updateGithub).place(x=350,y=0,height=30, width=100)
+        tk.Label(self,textvariable=self.versionVar).place(x=350,y=0,height=30, width=100)
 
         tk.Button(self,text='Exit',font=('Arial',35),command=self.master.on_closing).place(
             x=630,y=400,height=50,width=150)
