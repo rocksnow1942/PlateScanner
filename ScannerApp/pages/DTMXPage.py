@@ -11,7 +11,8 @@ class DTMXPage(BaseViewPage):
     def __init__(self, parent, master):
         super().__init__(parent,master)
         self.wells = []
-        self.specimenError = []
+        self.wellsColor = {}
+        self.specimenError = []        
         self.bypassErrorCheck = False
         self.reScanAttempt = 0 #to keep track how many times have been rescaned.
         self.master = master
@@ -29,6 +30,7 @@ class DTMXPage(BaseViewPage):
         self.result=self.resultType()
         self.reScanAttempt = 0
         self.specimenError = []
+        self.wellsColor = {}
         self.currentSelection = None
         self.clearInfo()
         self._prevBtn['state'] = 'normal'
@@ -84,7 +86,7 @@ class DTMXPage(BaseViewPage):
         self.tkraise()
         self.focus_set()
         self.camera.start()
-        self.drawOverlay(self.specimenError,self.currentSelection)
+        self.drawOverlay()
         self.displaymsg(msg)
         self.showPrompt()
 
@@ -95,21 +97,25 @@ class DTMXPage(BaseViewPage):
         if not self.master.devMode:
             self._nextBtn['state'] = 'disabled'
 
-    def drawOverlay(self,specimenError,currentSelection):        
-        speErr = {idx:color for idx,color,*_ in specimenError}
+    def drawOverlay(self):                
         for idx in range(96):
-            if idx in speErr:
-                self.wells[idx][0].configure(bg=speErr[idx])
-            else:
-                self.wells[idx][0].configure(bg='white')
-            if idx == currentSelection:
+            self.wells[idx][0].configure(bg=self.wellsColor.get(idx, '#DDD'))
+            if idx == self.currentSelection:
                 self.wells[idx][1].set('X')
             else:
                 self.wells[idx][1].set('')
-        
-                
-        
 
+    def scanlistener(self,e):      
+        """
+        this scan listener only accept alphanumeric values.
+        keycode: up:38, down: 40, left:37 right:39
+        """
+        if e.keycode in [37,38,39,40]:
+            self.moveSelection(['left','up','right','down'][e.keycode-37])()
+            return 'break'
+        else:
+            return super().scanlistener(e)
+        
     def keyboardCb(self, code):
         ""
         if code == 'snap':
@@ -123,7 +129,7 @@ class DTMXPage(BaseViewPage):
             posi = self.camera.indexToGridName(idx)
             self.result[idx] = (posi,convertTubeID(code))
             self.validateResult()            
-            self.drawOverlay(self.specimenError,self.currentSelection)
+            self.drawOverlay()
             self.showPrompt()
 
         elif self.result:
@@ -142,13 +148,18 @@ class DTMXPage(BaseViewPage):
             if isinstance(valid,bool):
                 if not valid:
                     newerror.append((i,'red','invalid'))
+                    self.wellsColor[i] = 'red'
+                else:
+                    self.wellsColor[i] = 'green'
             elif isinstance(valid,str):
                 if valid != 'green':
-                    newerror.append((i,valid,'invalid'))                
+                    newerror.append((i,valid,'invalid'))
+                self.wellsColor[i] = valid                
             elif isinstance(valid,tuple):
                 color,reason = valid
                 if color != 'green':
                     newerror.append((i,color,reason))
+                self.wellsColor[i] = color
             else:
                 print(f'Invalid validate result type: {valid}')
                 raise TypeError('Invalid result type')
@@ -185,7 +196,7 @@ class DTMXPage(BaseViewPage):
                 self.displayInfo(f"{position} : {convertedTubeID}")
             self.displayInfo("Validating...")
             self.validateResult()            
-            self.drawOverlay(self.specimenError,self.currentSelection)
+            self.drawOverlay()
             self.showPrompt()
             self._prevBtn['state'] = 'normal'
             self.readBtn['state'] = 'normal'
@@ -222,8 +233,12 @@ class DTMXPage(BaseViewPage):
                 self.currentSelection = 0
             if direction == 'up':
                 self.currentSelection -= 1
+                if self.currentSelection % 8 == 7:
+                    self.currentSelection += 8
             elif direction == 'down':
                 self.currentSelection += 1
+                if self.currentSelection % 8 == 0:
+                    self.currentSelection -= 8
             elif direction == 'left':
                 self.currentSelection -= 8
             elif direction == 'right':
@@ -231,7 +246,7 @@ class DTMXPage(BaseViewPage):
             if self.currentSelection < 0:
                 self.currentSelection = 96 + self.currentSelection
             elif self.currentSelection > 95:
-                self.currentSelection = self.currentSelection - 96
-            self.drawOverlay(self.specimenError,self.currentSelection)
+                self.currentSelection = self.currentSelection - 96            
+            self.drawOverlay()
             self.showPrompt()
         return cb

@@ -23,6 +23,7 @@ WIA_IMG_FORMAT_PNG = "{B96B3CAF-0728-11D3-9D7B-0000F81EF32E}"
 WIA_COMMAND_TAKE_PICTURE="{AF933CAC-ACAD-11D2-A093-00C04F72DC3C}"
 
 def acquire_image_wia(saveas,dpi=300):
+    #return './ScannerApp/utils/devsample.png'
     if pythoncom is None:
         return './ScannerApp/utils/devsample.png'
     pythoncom.CoInitialize()
