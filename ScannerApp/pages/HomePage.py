@@ -32,9 +32,9 @@ class HomePage(tk.Frame):
         while True:
             try:                
                 res = requests.get(githubURL)
-                ver = res.text.strip().split('=')[1].strip('"\' ')                
+                ver = res.text.strip().split('\n')[0].split('=')[1].strip('"\' ')
                 if  self.master.__version__ != ver:
-                    self.versionVar.set('Update found.')
+                    self.versionVar.set(f'Update {self.master.__version__} -> {ver}')
                 else:                    
                     self.versionVar.set(f'Appp Ver. {self.master.__version__}')
             except Exception as e:                

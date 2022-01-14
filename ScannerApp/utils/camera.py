@@ -57,10 +57,6 @@ class Camera():
         self.loadSettings(scanConfig)   
         self.dmtxConfig = dmtxConfig
         self.master = master
-        print('DTMX config',dmtxConfig)
-        print('Scan config',scanConfig)
-
-        
 
     def toggleZoom(self):
         "toggle camera zoom state"
@@ -181,7 +177,7 @@ class Camera():
                 code = self.decodePanel(panels,attempt=attempt,idx=idx)                
                 oldCode = oldresultDict.get(label,'')
                 if oldCode and code and oldCode != code:
-                    print('new read:',oldCode+'->'+code)
+                    # print('new read:',oldCode+'->'+code)
                     previousReads = oldCode.split('->')
                     oldCode = '->'.join(previousReads[-2:])
                     yield oldCode+'->'+code
