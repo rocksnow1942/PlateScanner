@@ -1,7 +1,6 @@
 import tkinter as tk
 from threading import Thread
-import os
-import requests,time,json
+import requests,time
 import time
 from datetime import datetime
 
