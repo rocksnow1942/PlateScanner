@@ -63,3 +63,4 @@ config.ini
 cameraConfig.ini
 *.png
 *.spec
+!images/biobank.png
