@@ -26,3 +26,16 @@ The app only works on Windows PC.
 
 - The `Scanner_{version}.exe` file will be in the `/dist` folder.
 
+## Trouble shoot:
+According to [pylibdmtx PyPI](https://pypi.org/project/pylibdmtx/)
+
+You might see `WindowsError: [Error 126] The specified module could not be found`
+
+Here is what you need to do:
+
+        If you see an ugly ImportError when importing pylibdmtx on Windows 
+        you will most likely need the Visual C++ Redistributable Packages
+        for Visual Studio 2013. Install vcredist_x64.exe if using 64-bit Python, 
+        vcredist_x86.exe if using 32-bit Python.
+
+Install the correspoinding file. The exe files are under `install` folder. 
