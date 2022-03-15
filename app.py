@@ -7,7 +7,7 @@ from ScannerApp.Images.icon import icon
 isRunningOnPi = platform.platform().startswith('Linux')
 
 # raspberry pi running with script and cannot load icon
-if isRunningOnPi:
+if not isRunningOnPi:
     # get the temp file as icon
     icondata= base64.b64decode(icon)
     ## The temp file is icon.ico
@@ -22,7 +22,7 @@ if isRunningOnPi:
 # in the config.ini, set appMode to dev or prod to switch between devMode and prodMode
 app = ScannerApp()
 
-if isRunningOnPi:
+if not isRunningOnPi:
     app.iconbitmap(tempFile)
     os.remove(tempFile)
 
