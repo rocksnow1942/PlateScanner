@@ -37,7 +37,7 @@ def yieldPanel(img):
             yield panel
 
 
-file = r'C:\Users\hui\codes\PlateScanner\ScannerApp\exports\dtmxScan\test.png'
+file = r"C:\Users\hui\RnD\Users\Hui Kang\SampleToLyse_0100002242.png"
 
 img = Image.open(file)
 

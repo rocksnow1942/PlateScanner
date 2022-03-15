@@ -14,6 +14,9 @@ from .utils.config import defaultConfig
 import sys
 from pathlib import Path
 from .__version__ import version
+import platform
+
+isRunningOnPi = platform.platform().startswith('Linux')
 
 class ScannerApp(tk.Tk,Logger):
     def __init__(self):
@@ -28,11 +31,12 @@ class ScannerApp(tk.Tk,Logger):
         self.title('Scanner App')
         self.resizable(0,0)
 
-        if self.devMode:
-            self.geometry('800x480+100+30')#-30
+        if isRunningOnPi:
+            geo = '800x480-30-30'
         else:
-            self.geometry('800x480+100+100')#-30
-
+            geo = '800x480+100+100'
+        self.geometry(geo)#-30
+        
         self.camera = Camera(scanConfig=self.scanConfig,                        
                             dmtxConfig=self.dataMatrixConfig,
                             master = self)
