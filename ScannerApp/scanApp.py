@@ -132,7 +132,8 @@ class ScannerApp(tk.Tk,Logger):
 
         configdict = defaultConfig
         for section in config.sections():
-            configdict[section]={}
+            if section not in configdict:
+                configdict[section]={}
             for key in config[section].keys():
                 configdict[section][key] = eval(config[section][key])
 
