@@ -35,7 +35,7 @@ class HomePage(tk.Frame):
                 if  self.master.__version__ != ver:
                     self.versionVar.set(f'Update {self.master.__version__} -> {ver}')
                 else:                    
-                    self.versionVar.set(f'Appp Ver. {self.master.__version__}')
+                    self.versionVar.set(f'App Ver. {self.master.__version__}')
             except Exception as e:                
                 self.versionVar.set('Check Update Error')
             time.sleep(3600)
@@ -48,7 +48,7 @@ class HomePage(tk.Frame):
         self.versionVar = tk.StringVar()
         self.versionVar.set(self.master.__version__)
         # tk.Label(self,textvariable=self.versionVar,).place(x=780,y=10,anchor='ne')
-        tk.Label(self,textvariable=self.versionVar).place(x=350,y=0,height=30, width=100)
+        tk.Label(self,textvariable=self.versionVar).place(x=300,y=0,height=30, width=200)
 
         tk.Button(self,text='Exit',font=('Arial',35),command=self.master.on_closing).place(
             x=630,y=400,height=50,width=150)
@@ -92,7 +92,7 @@ class HomePage(tk.Frame):
             #     self.master.firebase.offline=True
             try:                
                 t0=time.perf_counter()
-                requests.get(self.master.URL,timeout=1)
+                requests.get(self.master.URL,timeout=3)
                 dt = time.perf_counter() - t0
                 mongo = f"{int((dt) * 1000)}ms"
                 self.master.db.offline=False
@@ -113,7 +113,7 @@ class HomePage(tk.Frame):
             self.serverVar.set(f'A:{mongo}')
             color = 'red' if  mongo=='Offline' else 'green'
             self.serverStatus.config(fg=color)
-            time.sleep(3)
+            time.sleep(30)
 
     def showBtnPage(self,n):
         self.pageVar.set(f'{n+1} / {self.maxPage}')

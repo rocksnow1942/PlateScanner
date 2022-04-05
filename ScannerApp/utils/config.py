@@ -43,7 +43,8 @@ defaultConfig = {
             12,
             8
         ],
-        "dpi": 600
+        "dpi": 600,
+        "saveScanImage": False
     },
     "debugConfig": {
         "appMode": "prod",

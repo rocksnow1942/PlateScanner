@@ -57,6 +57,8 @@ class Camera():
         self.loadSettings(scanConfig)   
         self.dmtxConfig = dmtxConfig
         self.master = master
+        self.scanconfig = scanConfig
+        
 
     def toggleZoom(self):
         "toggle camera zoom state"
@@ -152,6 +154,9 @@ class Camera():
         file = mkdir('dtmxScan') / f'./{name or "noname"}.png'
         saved = acquire_image_wia(str(file),dpi=self.dpi)
         img = Image.open(saved)
+        # delete file after open 
+        if self.scanconfig.get('saveScanImage', False):
+            os.remove(saved)        
         return img
 
     
