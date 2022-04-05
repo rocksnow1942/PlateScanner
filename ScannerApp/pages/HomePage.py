@@ -33,7 +33,7 @@ class HomePage(tk.Frame):
             try:                
                 res = requests.get(githubURL)
                 ver = res.text.strip().split('\n')[0].split('=')[1].strip('"\' ')
-                if  self.master.__version__ == ver:
+                if  self.master.__version__ != ver:
                     self.versionVar.set(f'Click To Update {self.master.__version__} > {ver}')
                     self.versionLabel['fg'] = 'blue'
                     self.versionLabel['cursor'] = 'hand2'
