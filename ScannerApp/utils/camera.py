@@ -153,12 +153,16 @@ class Camera():
         """
         file = mkdir('dtmxScan') / f'./{name or "noname"}.png'
         saved = acquire_image_wia(str(file),dpi=self.dpi)
-        img = Image.open(saved)
-        # delete file after open 
-        if not self.scanconfig.get('saveScanImage', False):
-            os.remove(saved)        
+        img = Image.open(saved)                
         return img
 
+    def removeImage(self,name, images):
+        "remove image after a scan is done"
+        for img in images:
+            img.close()
+        file = mkdir('dtmxScan') / f'./{name or "noname"}.png'
+        if not self.scanconfig.get('saveScanImage', False):
+            os.remove(str(file))
     
 
     def scanDTMX(self,olderror=[],oldresult=[],attempt=0,needToVerify=96,plateId=''):
@@ -196,6 +200,8 @@ class Camera():
                     yield  oldCode
                 else:
                     yield  code
+
+        self.removeImage(plateId, images)
 
     def withinCount(self,label,count,grid=(12,8)):
         "check if a label is within a count from top to bottom, left to right"
