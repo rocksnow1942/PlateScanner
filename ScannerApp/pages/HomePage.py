@@ -3,6 +3,7 @@ from threading import Thread
 import requests,time
 import time
 from datetime import datetime
+import webbrowser
 
 class HomePage(tk.Frame):
     def __init__(self,parent,master):
@@ -32,11 +33,16 @@ class HomePage(tk.Frame):
             try:                
                 res = requests.get(githubURL)
                 ver = res.text.strip().split('\n')[0].split('=')[1].strip('"\' ')
-                if  self.master.__version__ != ver:
-                    self.versionVar.set(f'Update {self.master.__version__} -> {ver}')
+                if  self.master.__version__ == ver:
+                    self.versionVar.set(f'Click To Update {self.master.__version__} > {ver}')
+                    self.versionLabel['fg'] = 'blue'
+                    self.versionLabel['cursor'] = 'hand2'
+                    self.versionLabel['font'] = 'helvetica 10 underline'
+                    self.versionLabel.bind('<Button-1>',lambda e: webbrowser.open('https://github.com/rocksnow1942/PlateScanner/releases'))
                 else:                    
-                    self.versionVar.set(f'App Ver. {self.master.__version__}')
-            except Exception as e:                
+                    self.versionVar.set(f'App Ver. {self.master.__version__}')                    
+            except Exception as e:         
+                print(e)       
                 self.versionVar.set('Check Update Error')
             time.sleep(3600)
             
@@ -48,7 +54,8 @@ class HomePage(tk.Frame):
         self.versionVar = tk.StringVar()
         self.versionVar.set(self.master.__version__)
         # tk.Label(self,textvariable=self.versionVar,).place(x=780,y=10,anchor='ne')
-        tk.Label(self,textvariable=self.versionVar).place(x=300,y=0,height=30, width=200)
+        self.versionLabel = tk.Label(self,textvariable=self.versionVar)
+        self.versionLabel.place(x=300,y=3,height=24, width=200)
 
         tk.Button(self,text='Exit',font=('Arial',35),command=self.master.on_closing).place(
             x=630,y=400,height=50,width=150)
