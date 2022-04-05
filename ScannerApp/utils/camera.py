@@ -155,7 +155,7 @@ class Camera():
         saved = acquire_image_wia(str(file),dpi=self.dpi)
         img = Image.open(saved)
         # delete file after open 
-        if self.scanconfig.get('saveScanImage', False):
+        if not self.scanconfig.get('saveScanImage', False):
             os.remove(saved)        
         return img
 
