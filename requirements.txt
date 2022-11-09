@@ -28,7 +28,7 @@ pylibdmtx == 0.1.9
 python_dateutil == 2.8.1
 
 # C:\Users\hui\codes\PlateScanner\ScannerApp\utils\camera.py: 5,6
-pywin32 == 228
+# pywin32 == 228
 
 # C:\Users\hui\codes\PlateScanner\ScannerApp\pages\AccessionPage.py: 3
 # C:\Users\hui\codes\PlateScanner\ScannerApp\pages\HomePage.py: 4

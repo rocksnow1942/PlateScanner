@@ -1,3 +1,4 @@
+import logging
 from . import Routine
 from datetime import datetime
 import os
@@ -26,6 +27,8 @@ class ReadCSV(Routine):
         return f'ReadCSV_{self.plate}'
 
     def validateResult(self,code):
+        logging.warning('validateResult in ReadCSV file')
+
         pageNbr = self.currentPage
         if pageNbr == 0:
             self.plate = code
@@ -37,6 +40,8 @@ class ReadCSV(Routine):
 
 
     def displayResult(self):
+        logging.warning('displayResult')
+
         valid = [self.master.validate(i,codeType='sample') for _,i in self.tubes]
         msg = [
             f'Plate ID : {self.plate}',
@@ -45,6 +50,7 @@ class ReadCSV(Routine):
         ]
         return '\n'.join(msg)
     def saveResult(self):
+        logging.warning('saveResult')
         yield 'Saving result to ./export folder...'
         file = mkdir('readCSV') / f"{self.plate}_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
         with open(file,'wt') as f:

@@ -3,6 +3,7 @@ import tkinter as tk
 from threading import Thread
 from . import BaseViewPage
 from ..utils import convertTubeID
+import logging
 
 
 
@@ -81,6 +82,7 @@ class DTMXPage(BaseViewPage):
                 self.wells.append((lb,txt))
         
     def showPage(self,title="Default DataMatrix Page",msg="Place plate on reader and click read.",color='black'):
+        logging.warning("showPage")
         self.setTitle(title,color)
         self.keySequence = []
         self.tkraise()
@@ -114,6 +116,8 @@ class DTMXPage(BaseViewPage):
             self.moveSelection(['left','up','right','down'][e.keycode-37])()
             return 'break'
         else:
+            logging.warning("scanlistener")
+            logging.warning("scanlistener: %s", e)
             return super().scanlistener(e)
         
     def keyboardCb(self, code):
@@ -181,6 +185,11 @@ class DTMXPage(BaseViewPage):
         self.specimenError = []
         self.result = []
 
+        logging.warning('DTMXPage > read')
+        logging.warning('DTMXPage > read > olderror: %s', olderror) # []
+        logging.warning('DTMXPage > read > oldresult: %s', oldresult) # {}
+        logging.warning('DTMXPage > read > result: %s', str(self.result)) # []
+
         def read():
             try:
                 plateId = getattr(self.master.currentRoutine,'plateId','')
@@ -188,9 +197,20 @@ class DTMXPage(BaseViewPage):
                 # this is the total number of samples on plate, from A-H then 1-12.            
                 needToVerify = self.master.currentRoutine.totalSampleCount
 
-                for i, res in enumerate(self.camera.scanDTMX(olderror,oldresult,self.reScanAttempt,needToVerify,plateId)):
+                logging.warning('DTMXPage > read > plateId: %s', plateId)
+                logging.warning('DTMXPage > read > total: %s', total)
+                logging.warning('DTMXPage > read > needToVerify: %s', needToVerify)
+                # logging.warning('DTMXPage > read > SCAN: %s', self.camera.scanDTMX(olderror,oldresult,self.reScanAttempt,needToVerify,plateId))
+
+                # for i, res in enumerate(self.camera.scanDTMX(olderror,oldresult,self.reScanAttempt,needToVerify,plateId)):
+                # for i, res in enumerate(['00064782','93550624','93532956','456'],0): # This works. On database, sampleId=SK00064782
+                for i, res in enumerate(["0100006400", "0110006401", "0120006402", "0130006403", "0140006404", "0150006405",'93550624','93532956'],0):
                     position = self.camera.indexToGridName(i) # A1 or H12 position name
                     convertedTubeID  = convertTubeID(res)
+
+                    logging.warning('DTMXPage > read > FOR > position: %s', position)
+                    logging.warning('DTMXPage > read > FOR > convertedTubeID: %s', convertedTubeID)
+
                     self.displaymsg(
                         f'{"."*(i%4)} Reading {i+1:3} / {total:3} {"."*(i%4)}')
                     self.result.append((position,convertedTubeID))
@@ -206,6 +226,9 @@ class DTMXPage(BaseViewPage):
             except Exception as e:
                 self.displaymsg("Scanner error",'red')
                 self.displayInfo(str(e))
+
+                logging.warning('DTMXPage > read > EXCEPTION > error: %s', str(e))
+                self.readBtn['state'] = 'normal'
 
         Thread(target=read,).start()
         self.displaymsg('Scanning...')

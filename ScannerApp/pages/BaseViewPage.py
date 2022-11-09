@@ -1,3 +1,4 @@
+import logging
 import tkinter as tk
 from ..utils.logger import Logger
 from ..utils import warnImplement
@@ -96,6 +97,9 @@ class BaseViewPage(tk.Frame,Logger):
         self.keySequence = []
 
     def scanlistener(self,e):      
+
+        logging.warning('BaseViewPage > scanlistener > e.char: %s',e.char)
+
         """
         this scan listener only accept alphanumeric values.
         """ 

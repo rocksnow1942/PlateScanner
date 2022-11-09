@@ -1,3 +1,14 @@
+
+
+#
+
+The branch "lucas_tests_do_not_merge_ever" is only for tests purposes.
+It should not be merged ever!
+I'm using it only for logging things and explorations.
+
+#
+
+
 # 96 Well Plate Scanner App
 
 <img src=./ScannerApp/Images/icon.ico width=100>
