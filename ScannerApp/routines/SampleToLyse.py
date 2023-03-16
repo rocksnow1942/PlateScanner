@@ -1,3 +1,4 @@
+import logging
 import requests
 from ..utils.validators import selectPlateLayout,VariableSample_2NTC_3PTC_3IAB
 from . import Routine,GetColorMixin
@@ -72,11 +73,19 @@ class SampleToLyse(Routine,GetColorMixin):
 
     def initializePlate(self,plate):
         self.plate = plate(self)
+        logging.warning('SampleToLyse > initializePlate %s',plate.__name__)
+        # Using the barcode 1041000003, will print "VariableSample_2NTC_3PTC_3IAB"
 
 
     def validateResult(self,code,):
         "provide feedback to each step's scan results"
         pageNbr = self.currentPage
+
+        logging.warning('SampleToLyse > validateResult')
+
+        
+        # logging.warning('Fake barcode %s',code)
+
         # page = self.pages[pageNbr]
         if pageNbr == 0:
             plate = selectPlateLayout(self.master.validate(code,'samplePlate') and code)
@@ -100,10 +109,13 @@ class SampleToLyse(Routine,GetColorMixin):
         sPlate = self.results[0]
         lp = self.results[3]
         total = self.plate.totalSample
+        logging.warning('SampleToLyse > displayResult')
         msg = [f"Specimen plate ID: {sPlate}.",f"Lysis plate ID: {lp}",f"Total patient sample: {total}."]
         return '\n'.join(msg)
 
     def validateSpecimen(self,toValidate):
+        logging.warning('SampleToLyse > validateSpecimen %s', toValidate)
+
         # use validator on selected plate to validate the datamatrix result.
         if self.plate:
             return self.plate.validateSpecimen(toValidate,self.totalSampleCount)
@@ -112,7 +124,9 @@ class SampleToLyse(Routine,GetColorMixin):
 
     def compileResult(self):
         "combine the result to json."
-         
+
+        logging.warning('SampleToLyse > compileResult')
+
         sPlate = self.results[0]
         
         wells = self.results[2]
@@ -133,6 +147,8 @@ class SampleToLyse(Routine,GetColorMixin):
     def saveResult(self):
         "save results to database"
                 
+        logging.warning('SampleToLyse > saveResult')
+
         plate,samples = self.compileResult()
         yield 'Results compiled.'
         yield 'Saving plate results...'        

@@ -1,6 +1,20 @@
+# pip install --upgrade firebase-admin
+
+# import firebase_admin
+# from firebase_admin import credentials
+# from firebase_admin import firestore
+
+# cred = credentials.ApplicationDefault()
+# cred = credentials.Certificate('path/to/serviceAccount.json')
+
+# firebase_admin.initialize_app(cred)
+# db = firestore.client()
+
 defaultConfig = {
     "appConfig": {
-        "databaseURL": "http://192.168.1.200:8001",
+        # "databaseURL": "http://192.168.1.200:8001",
+        # "databaseURL": "http://localhost:27017",
+        "databaseURL": "https://sa-east-1.aws.data.mongodb-api.com/app/data-wqmut/endpoint/data/v1",
         "routines": [
             "SampleToLyse",
             "LyseToLAMP",

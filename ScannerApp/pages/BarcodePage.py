@@ -1,3 +1,4 @@
+import logging
 import tkinter as tk
 from threading import Thread
 from . import BaseViewPage
@@ -43,6 +44,7 @@ class BarcodePage(BaseViewPage):
         self.focus_set()     
         self.displaymsg(msg)
         self.showPrompt()
+        logging.warning('BarcodePage > showPage')
 
     def closePage(self):
         if not self.master.devMode:
@@ -56,25 +58,33 @@ class BarcodePage(BaseViewPage):
             self.disableNextBtn()
     
     def scanlistener(self,e):
+        logging.warning('BarcodePage > scanlistener')
         char = e.char
         if char.isalnum():
+            logging.warning('BarcodePage > scanlistener > IF')
             self.keySequence.append(char)
             self.scanVar.set(''.join(self.keySequence))        
         else:
+            logging.warning('BarcodePage > scanlistener > ELSE')
             if self.keySequence:
+                logging.warning('BarcodePage > scanlistener > ELSE > IF')
                 self.keyboardCb(''.join(self.keySequence))
             self.keySequence=[]
         #return 'break' to stop keyboard event propagation.
+        logging.warning('BarcodePage > scanlistener > keySequence: %s',char)
         return 'break'
 
     def keyboardCb(self,code):
         self.result = code
+        # code = 1041000003 # sample VALID barcode 1041000003
         self.validationStatus = self.master.currentRoutine.validateResult(code)
+        logging.warning('BarcodePage > keyboardCb > code: %s',code)
+        logging.warning('BarcodePage > keyboardCb > validationStatus: %s',self.validationStatus)
         self.showPrompt()
         
     def showPrompt(self):
         code = self.result
-        self.scanVar.set(code)
+        logging.warning('BarcodePage > showPrompt > code: %s',code)
         if code == "Not Scanned":
             self.scan.config(fg='black')
             return

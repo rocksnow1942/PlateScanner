@@ -64,7 +64,7 @@ class HomePage(tk.Frame):
         self.pageVar.set(f'1 / {self.maxPage}')
         tk.Label(self,textvariable=self.pageVar,font=('Arial',25)).place(x=350,y=400,width=100,height=50)
 
-        self.prevBtn = tk.Button(self,text='<',font=('Arial',40),command=self.prevPage)
+        self.prevBtn = tk.Button(self,text='a',font=('Arial',40),command=self.prevPage)
         self.prevBtn.place(x=300,y=400,width=50,height=50)
         self.prevBtn['state'] = 'disabled'
 
@@ -109,6 +109,7 @@ class HomePage(tk.Frame):
 
             # fbL = self.master.firebase.requestHistoryLenth 
             dbL = self.master.db.requestHistoryLenth 
+            # 
             if  dbL==0:
                 self.dbHistoryVar.set('All saved')
                 self.dbHistoryStatus.config(fg='green')

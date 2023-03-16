@@ -1,3 +1,4 @@
+import logging
 import tkinter as tk
 from . import BaseViewPage
 import time
@@ -39,7 +40,8 @@ class AuthorizationPage(BaseViewPage):
         self.tkraise()
         self.focus_set()        
         self.displaymsg('Scan Your Badge Before Proceed')
-        
+        self.after(200,self.keyboardCb('wCPvQ3H2bk')) # wCPvQ3H2bk é o token do meu usuário no mongo local
+        logging.warning('AuthorizationPage > showPage')
 
     def closePage(self):        
         self.resetState()
@@ -58,6 +60,7 @@ class AuthorizationPage(BaseViewPage):
     def keyboardCb(self,code):
         self.result = code      
         if sys.argv[-1] == '--dev':
+            logging.warning("AuthorizationPage is on dev mode")
             self.master.db.setUser({'username':'Hui Dev'})
             self.displaymsg(f'User is in dev mode.','green')
             self.after(500,self.startRoutine)

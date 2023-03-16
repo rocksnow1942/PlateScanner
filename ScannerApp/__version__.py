@@ -1,4 +1,4 @@
-version = "1.0.2"
+version = "3.0.0"
 
 """
 Relase notes

@@ -10,10 +10,10 @@ except:
     pythoncom=None
 import os
 import platform
-if platform.system() == 'Windows':
-    from .pylibdmtx.pylibdmtx import decode
-else:
-    from pylibdmtx.pylibdmtx import decode
+# if platform.system() == 'Windows':
+#     from .pylibdmtx.pylibdmtx import decode
+# else:
+#     from pylibdmtx.pylibdmtx import decode
 
 
 
