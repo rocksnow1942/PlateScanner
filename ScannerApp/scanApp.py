@@ -73,6 +73,7 @@ class ScannerApp(tk.Tk,Logger):
     # So that when altering config.ini structure, only need to change it here.
     @property
     def URL(self):
+        print("CONNECTED TO: " + self.config['appConfig']['databaseURL'])
         return self.config['appConfig']['databaseURL']
     @property
     def FirebaseConfig(self):

@@ -1,12 +1,26 @@
+### Compile
 
+There is a file `pyinstaller.make` on root folder containing the command to compile the app. I believe this file will compile only for Windows.
 
-#
+Here is the content of the file:
 
-The branch "lucas_tests_do_not_merge_ever" is only for tests purposes.
-It should not be merged ever!
-I'm using it only for logging things and explorations.
+```
+pyinstaller app.py --onefile --noconsole --clean --add-data ".\ScannerApp\utils\pylibdmtx\libdmtx-64.dll;."  --icon=".\ScannerApp\Images\icon.ico"
+```
 
-#
+**Compile on macOS**
+
+```
+pyinstaller app.py --onefile --clean  --icon="./ScannerApp/Images/icon.ico"
+```
+
+References:
+
+* [packaging-tkinter-applications-windows-pyinstaller](https://www.pythonguis.com/tutorials/packaging-tkinter-applications-windows-pyinstaller/)
+
+**Running on local environment**
+
+```python3.7 app.py - -dev```
 
 
 # 96 Well Plate Scanner App
@@ -51,7 +65,7 @@ User can change custom config with the settings file in the `./exports/userConfi
 # App overall settings
 [appConfig]
 # url of internal database server.
-databaseURL = 'http://192.168.1.200:8001'
+databaseURL = 'http://localhost:27017'
 
 # routines to be shown on the home page as buttons.
 routines = ['SampleToLyse','LyseToLAMP','SampleToLyseRetest','SaveStore','FindStore','ValidateSample','CreateSample','ReadCSV']
